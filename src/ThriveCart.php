@@ -1,5 +1,4 @@
 <?php
-
 namespace ThriveCart;
 
 use ThriveCart\http\ThriveCartCurlHttpClient;
@@ -11,7 +10,7 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  *
  * @package ThriveCart
  */
-class ThriveCart {
+class API {
 
   const VERSION = '1.0.0';
 
