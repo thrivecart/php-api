@@ -15,7 +15,7 @@ class Oauth extends AbstractProvider
     /**
      * @var string Base URI for ThriveCart
      */
-    private $baseUri = 'http://dev-thrivecart.com';
+    private $baseUri = 'https://thrivecart.com';
 
     /**
      * @var string Key used in a token response to identify the resource owner.
