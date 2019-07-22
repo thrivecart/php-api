@@ -1,0 +1,19 @@
+{
+  "name": "marcfowler/thrivecart-api-php",
+  "version": "1.0.0",
+  "type": "library",
+  "description": "PHP library for v1 of the ThriveCart API",
+  "keywords": ["thrivecart", "thrive", "webactix"],
+  "homepage": "https://github.com/marcfowler/thrivecart-api-php",
+  "require": {
+    "php": ">=5.4.0",
+    "league/oauth2-client": "^2.4",
+    "guzzlehttp/guzzle": "^6.2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "ThriveCart\\": "src/",
+      "ThriveCart\\http\\": "src/http/"
+    }
+  }
+}
