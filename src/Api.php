@@ -102,7 +102,7 @@ class Api {
    * @return array
    *   Array
    *
-   * @throws ThriveCartAPIException
+   * @throws ThriveCart\Exception
    */
   public function request($method, $path, $tokens = NULL, $parameters = NULL) {
     if (!empty($tokens)) {

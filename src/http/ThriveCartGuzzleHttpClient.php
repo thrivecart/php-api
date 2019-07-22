@@ -4,7 +4,6 @@ namespace ThriveCart\http;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use ThriveCart\ThriveCartAPIException;
 
 /**
  * An HTTP client for use with the ThriveCart API using Guzzle.
@@ -61,7 +60,7 @@ class ThriveCartGuzzleHttpClient implements ThriveCartHttpClientInterface {
         $message = $e->getMessage();
       }
 
-      throw new ThriveCartAPIException($message, $e->getCode(), $e);
+      throw new \ThriveCart\Exception($message, $e->getCode(), $e);
     }
   }
 
