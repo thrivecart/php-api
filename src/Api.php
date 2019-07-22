@@ -241,7 +241,7 @@ class Api {
    *
    * @return object
    */
-  public function getProduct($upsell_id, $parameters = []) {
+  public function getUpsell($upsell_id, $parameters = []) {
     $tokens = [
       'upsell_id' => $upsell_id,
     ];
