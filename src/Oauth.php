@@ -13,11 +13,6 @@ class Oauth extends AbstractProvider
     use BearerAuthorizationTrait;
 
     /**
-     * @var string Base URI for ThriveCart
-     */
-    private $baseUri = 'https://thrivecart.com';
-
-    /**
      * @var string Key used in a token response to identify the resource owner.
      */
     const ACCESS_TOKEN_RESOURCE_OWNER_ID = 'id';
@@ -38,6 +33,10 @@ class Oauth extends AbstractProvider
         parent::__construct($options, $collaborators);
     }
 
+    public function getBaseUri() {
+        return \ThriveCart\Api::$baseUri;
+    }
+
     /**
      * Get authorization url to begin OAuth flow
      *
@@ -45,7 +44,7 @@ class Oauth extends AbstractProvider
      */
     public function getBaseAuthorizationUrl()
     {
-        return $this->baseUri . '/authorization/new';
+        return $this->getBaseUri() . '/authorization/new';
     }
 
     /**
@@ -55,7 +54,7 @@ class Oauth extends AbstractProvider
      */
     public function getBaseAccessTokenUrl(array $params)
     {
-        return $this->baseUri . '/authorization/token';
+        return $this->getBaseUri() . '/authorization/token';
     }
 
     /**
@@ -67,7 +66,7 @@ class Oauth extends AbstractProvider
      */
     public function getResourceOwnerDetailsUrl(AccessToken $token)
     {
-        return $this->baseUri . '/authorization/me';
+        return $this->getBaseUri() . '/authorization/me';
     }
 
     /**

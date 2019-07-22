@@ -13,7 +13,7 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const VERSION = '1.0.2';
+  const VERSION = '1.0.3';
 
   /**
    * API version.
@@ -30,11 +30,18 @@ class Api {
   protected $client;
 
   /**
+   * The base URI.
+   *
+   * @var string $baseUri
+   */
+  public static $baseUri = 'https://thrivecart.com';
+
+  /**
    * The REST API endpoint.
    *
    * @var string $endpoint
    */
-  protected $endpoint = 'https://thrivecart.com/api/external';
+  public $endpoint = '/api/external';
 
   /**
    * The ThriveCart API access token to authenticate with.
@@ -62,6 +69,25 @@ class Api {
     else {
       $this->client = $this->getDefaultHttpClient($http_options);
     }
+  }
+
+  /**
+   * Sets a custom base URL for ThriveCart; this is used for development and testing and is not required in production.
+   *
+   * @param string $baseUri
+   *   The new baseUri to send all requests to.
+   */
+  public static function setBaseUri($baseUri) {
+    self::$baseUri = $baseUri;
+  }
+
+  /**
+   * Gets the base URL for ThriveCart.
+   *
+   * @return string
+   */
+  public function getBaseUri() {
+    return self::$baseUri;
   }
 
   /**
@@ -117,7 +143,7 @@ class Api {
       ],
     ];
 
-    return $this->client->handleRequest($method, $this->endpoint . $path, $options, $parameters, true);
+    return $this->client->handleRequest($method, $this->getBaseUri() . $this->endpoint . $path, $options, $parameters, true);
   }
 
   /**
