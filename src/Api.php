@@ -13,7 +13,7 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const VERSION = '1.0.0';
+  const VERSION = '1.0.2';
 
   /**
    * API version.
@@ -34,8 +34,7 @@ class Api {
    *
    * @var string $endpoint
    */
-  // protected $endpoint = 'https://thrivecart.com/api/external';
-  protected $endpoint = 'http://dev-thrivecart.com/api/external';
+  protected $endpoint = 'https://thrivecart.com/api/external';
 
   /**
    * The ThriveCart API access token to authenticate with.
