@@ -13,7 +13,7 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const VERSION = '1.0.4';
+  const VERSION = '1.0.5';
 
   public $api_config = array(
     'transactionTypes' => array(
@@ -53,6 +53,13 @@ class Api {
    * @var string $endpoint
    */
   public $endpoint = '/api/external';
+
+  /**
+   * The order mode to use ('live' or 'test')
+   *
+   * @var string $mode
+   */
+  private static $mode = 'live';
 
   /**
    * The ThriveCart API access token to authenticate with.
@@ -97,8 +104,27 @@ class Api {
    *
    * @return string
    */
-  public function getBaseUri() {
+  public static function getBaseUri() {
     return self::$baseUri;
+  }
+
+  /**
+   * Sets the mode to either 'live' or 'test'
+   *
+   * @param string $mode
+   */
+  public static function setMode($mode) {
+    if(!in_array($mode, array('test', 'live'))) throw new Exception('Invalid mode provided to the API ("'.$mode.'").');
+    self::$mode = $mode;
+  }
+
+  /**
+   * Gets the current mode setting.
+   *
+   * @return string
+   */
+  public static function getMode() {
+    return self::$mode;
   }
 
   /**
@@ -150,7 +176,8 @@ class Api {
     // Set default request options with auth header.
     $options = [
       'headers' => [
-        'Authorization' => 'Bearer '.$this->access_token
+        'Authorization' => 'Bearer '.$this->access_token,
+        'X-TC-Mode' => $this->getMode(),
       ],
     ];
 
