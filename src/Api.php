@@ -13,7 +13,18 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const VERSION = '1.0.3';
+  const VERSION = '1.0.4';
+
+  public $api_config = array(
+    'transactionTypes' => array(
+      null,
+      'any',
+      'charge',
+      'rebill',
+      'refund',
+      'cancel',
+    ),
+  );
 
   /**
    * API version.
@@ -302,5 +313,175 @@ class Api {
     ];
 
     return $this->request('GET', '/downsells/{downsell_id}', $tokens, $parameters);
+  }
+
+  /**
+   * Paginate through transactions
+   *
+   * @param array $parameters
+   *   Associative array of optional request parameters.
+   *   
+   *   query: Search query to run (customer email address, order ID, invoice ID, etc)
+   *   transactionType: null|'any'|'charge'|'rebill'|'refund'|'cancel'
+   *   perPage: Results per page (maximum of 25)
+   *   page: 1 through N
+   *
+   * @return array
+   */
+  public function transactions($parameters = []) {
+    if(isset($parameters['transactionType']) && !empty($parameters['transactionType'])) {
+      if(!in_array($parameters['transactionType'], $this->api_config['transactionTypes'])) {
+        throw new Exception('Invalid transaction type provided (you provided "'.$parameters['transactionType'].'").');
+      }
+    }
+
+    if(isset($parameters['perPage'])) {
+      if(!is_numeric($parameters['perPage']) || $parameters['perPage'] < 0) {
+        throw new Exception('You must provide a valid number for the perPage parameter (you provided "'.$parameters['perPage'].'").');
+      }
+
+      if($parameters['perPage'] > 25) {
+        throw new Exception('The maximum results per page is 25 (you requested "'.$parameters['perPage'].'").');
+      }
+    }
+
+    return $this->request('GET', '/transactions', null, $parameters);
+  }
+
+  /**
+   * Return all the information stored about a single customer
+   *
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *   
+   *   email: Customer email to search for
+   *
+   * @return object
+   */
+  public function customer($parameters = []) {
+    if(!isset($parameters['email']) || empty($parameters['email'])) {
+      throw new Exception('You must provide an email address.');
+    }
+
+    if(function_exists('filter_var')) {
+      if(!filter_var($parameters['email'], FILTER_VALIDATE_EMAIL)) {
+        throw new Exception('You must provide a valid email address (you provided "'.$parameters['email'].'").');
+      }
+    }
+
+    return $this->request('POST', '/customer', null, $parameters);
+  }
+
+  /**
+   * Refund a single transaction or rebill
+   *
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *   
+   *   order_id: The order ID
+   *   reference: The item reference
+   *   reason: Optional string explaining the reason for the refund; never shown to the customer
+   *
+   * @return object
+   */
+  public function refund($parameters = []) {
+    if(!isset($parameters['order_id']) || !is_numeric($parameters['order_id']) || empty($parameters['order_id'])) {
+      throw new Exception('You must provide a valid order ID to refund (you provided "'.$parameters['order_id'].'").');
+    }
+
+    if(!isset($parameters['reference']) || empty($parameters['reference'])) {
+      throw new Exception('You must provide a valid item reference to refund (you provided "'.$parameters['reference'].'").');
+    }
+
+    if(isset($parameters['reason']) && strlen($parameters['reason']) > 200) {
+      throw new Exception('Your reason for this refund must be shorter than 200 characters (yours was "'.strlen($parameters['reason']).'").');
+    }
+
+    return $this->request('POST', '/refund', null, $parameters);
+  }
+
+  /**
+   * Cancel an active or paused subscription
+   *
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *   
+   *   order_id: The order ID
+   *   subscription_id: The subscription ID
+   *
+   * @return object
+   */
+  public function cancelSubscription($parameters = []) {
+    if(!isset($parameters['order_id']) || !is_numeric($parameters['order_id']) || empty($parameters['order_id'])) {
+      throw new Exception('You must provide a valid order ID to cancel (you provided "'.$parameters['order_id'].'").');
+    }
+
+    if(!isset($parameters['subscription_id']) || !is_numeric($parameters['subscription_id']) || empty($parameters['subscription_id'])) {
+      throw new Exception('You must provide a valid subscription ID to cancel (you provided "'.$parameters['subscription_id'].'").');
+    }
+
+    return $this->request('POST', '/cancelSubscription', null, $parameters);
+  }
+
+  /**
+   * Pause an active subscription
+   *
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *   
+   *   order_id: The order ID
+   *   subscription_id: The subscription ID
+   *   auto_resume: (Optional) Unix timestamp of when to automatically resume the subscription; must be at least 24 hours in the future
+   *
+   * @return object
+   */
+  public function pauseSubscription($parameters = []) {
+    if(!isset($parameters['order_id']) || !is_numeric($parameters['order_id']) || empty($parameters['order_id'])) {
+      throw new Exception('You must provide a valid order ID to pause (you provided "'.$parameters['order_id'].'").');
+    }
+
+    if(!isset($parameters['subscription_id']) || !is_numeric($parameters['subscription_id']) || empty($parameters['subscription_id'])) {
+      throw new Exception('You must provide a valid subscription ID to pause (you provided "'.$parameters['subscription_id'].'").');
+    }
+
+    if(isset($parameters['auto_resume'])) {
+      if(!is_numeric($parameters['auto_resume'])) {
+        throw new Exception('If automatically resume a subscription, you must provide it as a Unix timestamp (you provided "'.$parameters['auto_resume'].'").');
+      }
+
+      $now = time();
+      if($parameters['auto_resume'] <= $now) {
+        throw new Exception('You cannot auto-resume a subscription in the past. Check your timestamp.');
+      }
+
+      if(($parameters['auto_resume'] - $now) < 86399) {
+        throw new Exception('You cannot auto-resume a subscription within a day from right now - please provide a time further in the future.');
+      }
+    }
+
+    return $this->request('POST', '/pauseSubscription', null, $parameters);
+  }
+
+  /**
+   * Resume a paused subscription
+   *
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *   
+   *   order_id: The order ID
+   *   subscription_id: The subscription ID
+   *
+   * @return object
+   */
+  public function resumeSubscription($parameters = []) {
+    if(!isset($parameters['order_id']) || !is_numeric($parameters['order_id']) || empty($parameters['order_id'])) {
+      throw new Exception('You must provide a valid order ID to resume (you provided "'.$parameters['order_id'].'").');
+    }
+
+    if(!isset($parameters['subscription_id']) || !is_numeric($parameters['subscription_id']) || empty($parameters['subscription_id'])) {
+      throw new Exception('You must provide a valid subscription ID to resume (you provided "'.$parameters['subscription_id'].'").');
+    }
+
+    return $this->request('POST', '/resumeSubscription', null, $parameters);
   }
 }
