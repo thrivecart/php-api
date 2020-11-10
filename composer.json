@@ -5,7 +5,7 @@
   "type": "library",
   "description": "PHP library for v1 of the ThriveCart API",
   "keywords": ["thrivecart", "webactix"],
-  "homepage": "https://github.com/thrivecart/api-php",
+  "homepage": "https://github.com/thrivecart/php-api",
   "require": {
     "php": ">=5.4.0",
     "league/oauth2-client": "^2.4",
