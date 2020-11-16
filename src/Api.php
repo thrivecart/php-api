@@ -13,7 +13,8 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const VERSION = '1.0.5';
+  const SDK_VERSION = '1.0.7';
+  const API_VERSION = '1.0.0';
 
   public $api_config = array(
     'transactionTypes' => array(
@@ -27,11 +28,18 @@ class Api {
   );
 
   /**
+   * SDK version.
+   *
+   * @var string $sdk_version
+   */
+  public $sdk_version = self::SDK_VERSION;
+
+  /**
    * API version.
    *
-   * @var string $version
+   * @var string $api_version
    */
-  public $version = self::VERSION;
+  public $api_version = self::API_VERSION;
 
   /**
    * The HTTP client.
@@ -140,13 +148,10 @@ class Api {
   /**
    * Gets ThriveCart account information for the authenticated account.
    *
-   * @param array $parameters
-   *   Associative array of optional request parameters.
-   *
    * @return array
    */
-  public function getAccount($parameters = []) {
-    return $this->request('GET', '/', NULL, $parameters);
+  public function ping($parameters = []) {
+    return $this->request('GET', '/ping', NULL, $parameters);
   }
 
   /**
@@ -178,6 +183,8 @@ class Api {
       'headers' => [
         'Authorization' => 'Bearer '.$this->access_token,
         'X-TC-Mode' => $this->getMode(),
+        'X-TC-Sdk' => 'php/'.$this->sdk_version,
+        'X-TC-Version' => $this->api_version,
       ],
     ];
 
@@ -210,15 +217,6 @@ class Api {
     $client = new ThriveCartGuzzleHttpClient($http_options);
 
     return $client;
-  }
-
-  /**
-   * Gets info about the connected account
-   *
-   * @return object
-   */
-  public function ping($parameters = []) {
-    return $this->request('GET', '/ping', NULL, $parameters);
   }
 
   /**
@@ -372,6 +370,12 @@ class Api {
       }
     }
 
+    if(isset($parameters['page'])) {
+      if(!is_numeric($parameters['page']) || empty($parameters['page'])) {
+        throw new Exception('You must provide a valid number for the page parameter (you provided "'.$parameters['page'].'".');
+      }
+    }
+
     return $this->request('GET', '/transactions', null, $parameters);
   }
 
@@ -510,5 +514,126 @@ class Api {
     }
 
     return $this->request('POST', '/resumeSubscription', null, $parameters);
+  }
+
+  /**
+   * Paginate through affiliates
+   *
+   * @param array $parameters
+   *   Associative array of optional request parameters.
+   *   
+   *   product_id: Product ID
+   *   query: Search query to run (affiliate name, email, affiliate ID)
+   *   perPage: Results per page (maximum of 25)
+   *   page: 1 through N
+   *
+   * @return array
+   */
+  public function affiliates($parameters = []) {
+    if(isset($parameters['product_id']) && !empty($param['product_id'])) {
+      if(!is_numeric($parameters['product_id']) || $parameters['product_id'] <= 0) {
+        throw new Exception('You must provide a numeric product ID, or leave this field blank to exclude it.');
+      }
+    }
+
+    if(isset($parameters['perPage'])) {
+      if(!is_numeric($parameters['perPage']) || $parameters['perPage'] < 0) {
+        throw new Exception('You must provide a valid number for the perPage parameter (you provided "'.$parameters['perPage'].'").');
+      }
+
+      if($parameters['perPage'] > 25) {
+        throw new Exception('The maximum results per page is 25 (you requested "'.$parameters['perPage'].'").');
+      }
+    }
+
+    return $this->request('GET', '/affiliates', null, $parameters);
+  }
+
+  /**
+   * Return all the information stored about a single affiliate
+   *
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *   
+   *   affiliate_id: Affiliate identifier to search for (this can be their numeric user ID, their affiliate_id included in affiliate links etc, or email address)
+   *
+   * @return object
+   */
+  public function affiliate($parameters = []) {
+    if(!isset($parameters['affiliate_id']) || empty($parameters['affiliate_id'])) {
+      throw new Exception('You must provide an affiliate identifier to look up a single affiliate.');
+    }
+
+    if(function_exists('filter_var')) {
+      if(stripos($parameters['affiliate_id'], '@') !== false && !filter_var($parameters['affiliate_id'], FILTER_VALIDATE_EMAIL)) {
+        throw new Exception('You must provide a valid email address, if searching via email address (you provided "'.$parameters['affiliate_id'].'").');
+      }
+    }
+
+    return $this->request('POST', '/affiliate', null, $parameters);
+  }
+
+  /**
+   * Create a new event subscription
+   *
+   * @param string $event
+   *   Either `*` for all events, or a particular event name (see documentation for list of potential events)
+   *
+   * @param string $target_url
+   *   Your URL to receive matching events (must be registered to your app if using OAuth)
+   *
+   * @param array $trigger_fields
+   *   Associative array of trigger_fields (see documentation for trigger fields)
+   *
+   * @return object
+   */
+  public function createEventSubscription($event, $target_url, $trigger_fields = []) {
+    if(empty($event)) {
+      throw new Exception('You must provide a valid event name to create an event subscription.');
+    }
+
+    if(empty($target_url)) {
+      throw new Exception('You must provide a target URL to create an event subscription.');
+    }
+
+    if(function_exists('filter_var')) {
+      if(!filter_var($target_url, FILTER_VALIDATE_URL)) {
+        throw new Exception('You must provide a valid target URL to create an event subscription.');
+      }
+    }
+
+    $blob = array(
+      'event' => $event,
+      'target_url' => $target_url,
+      'trigger_fields' => $trigger_fields,
+    );
+
+    return $this->request('POST', '/subscribe', null, $blob);
+  }
+
+  /**
+   * Cancels an event subscription
+   *
+   * @param string $target_url
+   *   Your URL to receive matching events (must have previously been registered as an event subscription endpoint)
+   *
+   * @return object
+   */
+  public function cancelEventSubscription($target_url) {
+    if(empty($target_url)) {
+      throw new Exception('You must provide a target URL to cancel an event subscription.');
+    }
+
+    if(function_exists('filter_var')) {
+      if(!filter_var($target_url, FILTER_VALIDATE_URL)) {
+        throw new Exception('You must provide a valid target URL to cancel an event subscription.');
+      }
+    }
+
+    $blob = array(
+      'target_url' => $target_url,
+    );
+
+    return $this->request('POST', '/unsubscribe', null, $blob);
   }
 }
