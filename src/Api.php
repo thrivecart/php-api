@@ -13,7 +13,7 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const SDK_VERSION = '1.0.7';
+  const SDK_VERSION = '1.0.8';
   const API_VERSION = '1.0.0';
 
   public $api_config = array(
@@ -211,7 +211,7 @@ class Api {
 
     // Default timeout is 10 seconds.
     $http_options += [
-      'timeout' => 10,
+      'timeout' => 20,
     ];
 
     $client = new ThriveCartGuzzleHttpClient($http_options);
@@ -251,6 +251,24 @@ class Api {
   }
 
   /**
+   * Gets a ThriveCart product's pricing options.
+   *
+   * @param string $product_id
+   *   The ID of the product.
+   * @param array $parameters
+   *   Associative array of optional request parameters.
+   *
+   * @return object
+   */
+  public function getProductPricing($product_id, $parameters = []) {
+    $tokens = [
+      'product_id' => $product_id,
+    ];
+
+    return $this->request('GET', '/products/{product_id}/pricing_options', $tokens, $parameters);
+  }
+
+  /**
    * Gets information about all bumps owned by the authenticated account.
    *
    * @param array $parameters
@@ -278,6 +296,24 @@ class Api {
     ];
 
     return $this->request('GET', '/bumps/{bump_id}', $tokens, $parameters);
+  }
+
+  /**
+   * Gets a ThriveCart bump's pricing options.
+   *
+   * @param string $bump_id
+   *   The ID of the bump.
+   * @param array $parameters
+   *   Associative array of optional request parameters.
+   *
+   * @return object
+   */
+  public function getBumpPricing($bump_id, $parameters = []) {
+    $tokens = [
+      'bump_id' => $bump_id,
+    ];
+
+    return $this->request('GET', '/bumps/{bump_id}/pricing_options', $tokens, $parameters);
   }
 
   /**
@@ -311,6 +347,24 @@ class Api {
   }
 
   /**
+   * Gets a ThriveCart upsell's pricing options.
+   *
+   * @param string $upsell_id
+   *   The ID of the upsell.
+   * @param array $parameters
+   *   Associative array of optional request parameters.
+   *
+   * @return object
+   */
+  public function getUpsellPricing($upsell_id, $parameters = []) {
+    $tokens = [
+      'upsell_id' => $upsell_id,
+    ];
+
+    return $this->request('GET', '/upsells/{upsell_id}/pricing_options', $tokens, $parameters);
+  }
+
+  /**
    * Gets information about all downsells owned by the authenticated account.
    *
    * @param array $parameters
@@ -341,7 +395,25 @@ class Api {
   }
 
   /**
-   * Paginate through transactions
+   * Gets a ThriveCart downsell's pricing options.
+   *
+   * @param string $downsell_id
+   *   The ID of the downsell.
+   * @param array $parameters
+   *   Associative array of optional request parameters.
+   *
+   * @return object
+   */
+  public function getDownsellPricing($downsell_id, $parameters = []) {
+    $tokens = [
+      'downsell_id' => $downsell_id,
+    ];
+
+    return $this->request('GET', '/downsells/{downsell_id}/pricing_options', $tokens, $parameters);
+  }
+
+  /**
+   * Paginate through transactions.
    *
    * @param array $parameters
    *   Associative array of optional request parameters.
@@ -380,7 +452,7 @@ class Api {
   }
 
   /**
-   * Return all the information stored about a single customer
+   * Return all the information stored about a single customer.
    *
    * @param array $parameters
    *   Associative array of request parameters.
@@ -404,7 +476,7 @@ class Api {
   }
 
   /**
-   * Refund a single transaction or rebill
+   * Refund a single transaction or rebill.
    *
    * @param array $parameters
    *   Associative array of request parameters.
@@ -432,7 +504,7 @@ class Api {
   }
 
   /**
-   * Cancel an active or paused subscription
+   * Cancel an active or paused subscription.
    *
    * @param array $parameters
    *   Associative array of request parameters.
@@ -455,7 +527,7 @@ class Api {
   }
 
   /**
-   * Pause an active subscription
+   * Pause an active subscription.
    *
    * @param array $parameters
    *   Associative array of request parameters.
@@ -494,7 +566,7 @@ class Api {
   }
 
   /**
-   * Resume a paused subscription
+   * Resume a paused subscription.
    *
    * @param array $parameters
    *   Associative array of request parameters.
@@ -517,7 +589,7 @@ class Api {
   }
 
   /**
-   * Paginate through affiliates
+   * Paginate through affiliates.
    *
    * @param array $parameters
    *   Associative array of optional request parameters.
@@ -550,7 +622,7 @@ class Api {
   }
 
   /**
-   * Return all the information stored about a single affiliate
+   * Return all the information stored about a single affiliate.
    *
    * @param array $parameters
    *   Associative array of request parameters.
@@ -574,7 +646,206 @@ class Api {
   }
 
   /**
-   * Create a new event subscription
+   * Create a new affiliate, or add an existing one to your account.
+   *
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *    email: The email/username for the affiliate - they will use this to sign in to their account
+   *    name: (Optional) Affiliate's name
+   *    affiliate_id: Preferred affiliate ID - this may be modified by the system to ensure it is unique
+   *    product_id: Numeric product ID to register the affiliate for
+   *    auto_approve: Auto-approve this application, regardless of the product settings?
+   *    product_ids: Array or JSON-encoded array of numeric product IDs, to add to multiple products at once
+   *    parent_affiliate: Numeric user object ID to mark as the referring second-tier affiliate (must exist already, and be set as a second-tier affiliate)
+   *    first_name: (Optional) Affiliate's first name - not used in conjunction with the 'name' parameter
+   *    last_name: (Optional) Affiliate's last name - not used in conjunction with the 'name' parameter
+   *    company: (Optional) Affiliate's company name
+   *    country: (Optional) 2-digit country code for the affiliate's country
+   *    city: (Optional) Affiliate's city
+   *    state: (Optional) Affiliate's state/region
+   *    zip: (Optional) Affiliate's ZIP/post code
+   *    trigger_emails: Trigger emails to the affiliate and/or vendor?
+   *
+   * @return object
+   */
+  public function createAffiliate($parameters = []) {
+    if(!isset($parameters['product_id']) || !is_numeric($parameters['product_id'])) {
+      throw new Exception('You must provide a valid product ID to set custom commissions (you provided "'.$parameters['product_id'].'").');
+    }
+
+    if(isset($parameters['product_ids'])) {
+      if(is_array($parameters['product_ids'])) {
+        $parameters['product_ids'] = json_encode($parameters['product_ids']);
+      }
+    }
+
+    return $this->request('POST', '/affiliates', null, $parameters);
+  }
+
+  /**
+   * Mark an affiliate as a favorite/VIP affiliate.
+   *
+   * @param string $affiliate_id
+   *   The numeric affiliate user ID, the affiliate email address, or the affiliate's affiliate ID.
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *
+   * @return object
+   */
+  public function favoriteAffiliate($affiliate_id, $parameters = []) {
+    $tokens = [
+      'affiliate_id' => $affiliate_id,
+    ];
+
+    return $this->request('POST', '/affiliates/{affiliate_id}/favorite', $tokens, $parameters);
+  }
+
+  /**
+   * Remove the favorite/VIP marker from an affiliate.
+   *
+   * @param string $affiliate_id
+   *   The numeric affiliate user ID, the affiliate email address, or the affiliate's affiliate ID.
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *
+   * @return object
+   */
+  public function unfavoriteAffiliate($affiliate_id, $parameters = []) {
+    $tokens = [
+      'affiliate_id' => $affiliate_id,
+    ];
+
+    return $this->request('POST', '/affiliates/{affiliate_id}/unfavorite', $tokens, $parameters);
+  }
+
+  /**
+   * Register an existing affiliate for a product, or list of products.
+   *
+   * @param string $affiliate_id
+   *   The numeric affiliate user ID, the affiliate email address, or the affiliate's affiliate ID.
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *    product_ids: JSON array of numeric product IDs to register for (which must have affiliates turned on in their settings)
+   *    auto_approve: Auto-approve this application, regardless of the product settings?
+   *    trigger_emails: Trigger emails to the affiliate and/or vendor?
+   *    parent_affiliate: Numeric ID of the parent, referring affiliate (who must already be marked as a second tier affiliate for all products in the list)
+   *
+   * @return object
+   */
+  public function registerAffiliate($affiliate_id, $parameters = []) {
+    $tokens = [
+      'affiliate_id' => $affiliate_id,
+    ];
+
+    if(isset($parameters['product_ids'])) {
+      if(is_array($parameters['product_ids'])) {
+        $parameters['product_ids'] = json_encode($parameters['product_ids']);
+      }
+    }
+
+    return $this->request('POST', '/affiliates/{affiliate_id}/register', $tokens, $parameters);
+  }
+
+  /**
+   * Approve an affiliate for a product, or list of products. They must have a pending approval already for all provided products.
+   *
+   * @param string $affiliate_id
+   *   The numeric affiliate user ID, the affiliate email address, or the affiliate's affiliate ID.
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *    product_ids: JSON array of numeric product IDs to approve for
+   *    trigger_emails: Trigger emails to the affiliate and/or vendor?
+   *
+   * @return object
+   */
+  public function approveAffiliate($affiliate_id, $parameters = []) {
+    $tokens = [
+      'affiliate_id' => $affiliate_id,
+    ];
+
+    if(isset($parameters['product_ids'])) {
+      if(is_array($parameters['product_ids'])) {
+        $parameters['product_ids'] = json_encode($parameters['product_ids']);
+      }
+    }
+
+    return $this->request('POST', '/affiliates/{affiliate_id}/approve', $tokens, $parameters);
+  }
+
+  /**
+   * Reject an affiliate for a product, or list of products.
+   *
+   * @param string $affiliate_id
+   *   The numeric affiliate user ID, the affiliate email address, or the affiliate's affiliate ID.
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *    product_ids: JSON array of numeric product IDs to reject their application(s) for
+   *    trigger_emails: Trigger emails to the affiliate and/or vendor?
+   *
+   * @return object
+   */
+  public function rejectAffiliate($affiliate_id, $parameters = []) {
+    $tokens = [
+      'affiliate_id' => $affiliate_id,
+    ];
+
+    if(isset($parameters['product_ids'])) {
+      if(is_array($parameters['product_ids'])) {
+        $parameters['product_ids'] = json_encode($parameters['product_ids']);
+      }
+    }
+
+    return $this->request('POST', '/affiliates/{affiliate_id}/reject', $tokens, $parameters);
+  }
+
+  /**
+   * Specify custom commissions for an affiliate for a particular product.
+   *
+   * @param string $affiliate_id
+   *   The numeric affiliate user ID, the affiliate email address, or the affiliate's affiliate ID.
+   * @param array $parameters
+   *   Associative array of request parameters.
+   *    product_id: Numeric product ID to apply custom commissions to.
+   *    commission_object: JSON object describing the custom commission settings to apply.
+   *
+   * @return object
+   */
+  public function setCustomCommissions($affiliate_id, $parameters = []) {
+    $tokens = [
+      'affiliate_id' => $affiliate_id,
+    ];
+
+    if(!isset($parameters['product_id']) || !is_numeric($parameters['product_id'])) {
+      throw new Exception('You must provide a valid product ID to set custom commissions (you provided "'.$parameters['product_id'].'").');
+    }
+
+    if(isset($parameters['commission_object'])) {
+      if(is_array($parameters['commission_object']) || is_object($parameters['commission_object'])) {
+        $parameters['commission_object'] = json_encode($parameters['commission_object']);
+      }
+    }
+
+    return $this->request('POST', '/affiliates/{affiliate_id}/custom_commissions', $tokens, $parameters);
+  }
+
+  /**
+   * Delete an affiliate from your account.
+   *
+   * @param string $affiliate_id
+   *   The numeric affiliate user ID, the affiliate email address, or the affiliate's affiliate ID.
+   *
+   * @return object
+   */
+  public function deleteAffiliate($affiliate_id, $parameters = []) {
+    $tokens = [
+      'affiliate_id' => $affiliate_id,
+    ];
+
+    return $this->request('POST', '/affiliates/{affiliate_id}/delete', $tokens, $parameters);
+  }
+
+  /**
+   * Create a new event subscription.
    *
    * @param string $event
    *   Either `*` for all events, or a particular event name (see documentation for list of potential events)
@@ -612,7 +883,7 @@ class Api {
   }
 
   /**
-   * Cancels an event subscription
+   * Cancels an event subscription.
    *
    * @param string $target_url
    *   Your URL to receive matching events (must have previously been registered as an event subscription endpoint)
