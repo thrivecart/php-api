@@ -13,7 +13,7 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const SDK_VERSION = '1.0.8';
+  const SDK_VERSION = '1.0.9';
   const API_VERSION = '1.0.0';
 
   public $api_config = array(
@@ -670,7 +670,7 @@ class Api {
    */
   public function createAffiliate($parameters = []) {
     if(!isset($parameters['product_id']) || !is_numeric($parameters['product_id'])) {
-      throw new Exception('You must provide a valid product ID to set custom commissions (you provided "'.$parameters['product_id'].'").');
+      throw new Exception('You must provide a valid product ID to create an affiliate (you provided "'.$parameters['product_id'].'").');
     }
 
     if(isset($parameters['product_ids'])) {
