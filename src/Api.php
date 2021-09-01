@@ -13,7 +13,7 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const SDK_VERSION = '1.0.9';
+  const SDK_VERSION = '1.0.10';
   const API_VERSION = '1.0.0';
 
   public $api_config = array(
