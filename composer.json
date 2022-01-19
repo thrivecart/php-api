@@ -1,6 +1,6 @@
 {
   "name": "thrivecart/php-api",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "license": "MIT",
   "type": "library",
   "description": "PHP library for v1 of the ThriveCart API",

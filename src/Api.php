@@ -13,7 +13,7 @@ use ThriveCart\http\ThriveCartHttpClientInterface;
  */
 class Api {
 
-  const SDK_VERSION = '1.0.10';
+  const SDK_VERSION = '1.0.11';
   const API_VERSION = '1.0.0';
 
   public $api_config = array(
@@ -420,7 +420,7 @@ class Api {
    *   
    *   query: Search query to run (customer email address, order ID, invoice ID, etc)
    *   transactionType: null|'any'|'charge'|'rebill'|'refund'|'cancel'
-   *   perPage: Results per page (maximum of 25)
+   *   perPage: Results per page (maximum of 100)
    *   page: 1 through N
    *
    * @return array
@@ -437,8 +437,8 @@ class Api {
         throw new Exception('You must provide a valid number for the perPage parameter (you provided "'.$parameters['perPage'].'").');
       }
 
-      if($parameters['perPage'] > 25) {
-        throw new Exception('The maximum results per page is 25 (you requested "'.$parameters['perPage'].'").');
+      if($parameters['perPage'] > 100) {
+        throw new Exception('The maximum results per page is 100 (you requested "'.$parameters['perPage'].'").');
       }
     }
 
